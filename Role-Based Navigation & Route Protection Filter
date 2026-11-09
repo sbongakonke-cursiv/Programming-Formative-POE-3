@@ -1,0 +1,31 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+
+public class RBACAuthorizeAttribute : ActionFilterAttribute
+{
+    private readonly string _requiredRole;
+
+    public RBACAuthorizeAttribute(string requiredRole = "")
+    {
+        _requiredRole = requiredRole;
+    }
+
+    public override void OnActionExecuting(ActionExecutingContext context)
+    {
+        var token = context.HttpContext.Session.GetString("JWToken");
+        var userRole = context.HttpContext.Session.GetString("UserRole");
+
+        // Check if unauthenticated
+        if (string.IsNullOrEmpty(token))
+        {
+            context.Result = new RedirectToActionResult("Login", "Account", null);
+            return;
+        }
+
+        // Check if specific role is required
+        if (!string.IsNullOrEmpty(_requiredRole) && userRole != _requiredRole)
+        {
+            context.Result = new ForbidResult();
+        }
+    }
+}
