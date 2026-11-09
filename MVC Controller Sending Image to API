@@ -1,0 +1,33 @@
+[HttpPost]
+[RBACAuthorize("Organiser")]
+public async Task<IActionResult> CreateEvent(CreateEventViewModel model)
+{
+    if (!ModelState.IsValid) return View(model);
+
+    using var formData = new MultipartFormDataContent();
+    formData.Add(new StringContent(model.EventName), "EventName");
+    formData.Add(new StringContent(model.Description), "Description");
+    formData.Add(new StringContent(model.Location), "Location");
+    formData.Add(new StringContent(model.EventDate.ToString("yyyy-MM-dd")), "EventDate");
+    formData.Add(new StringContent(model.EventType), "EventType");
+
+    // Attach banner image file if uploaded
+    if (model.BannerImage != null && model.BannerImage.Length > 0)
+    {
+        var fileStreamContent = new StreamContent(model.BannerImage.OpenReadStream());
+        fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(model.BannerImage.ContentType);
+        formData.Add(fileStreamContent, "bannerImage", model.BannerImage.FileName);
+    }
+
+    var token = HttpContext.Session.GetString("JWToken");
+    _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+    
+    var response = await _httpClient.PostAsync("api/events", formData);
+    if (response.IsSuccessStatusCode)
+    {
+        return RedirectToAction("Dashboard");
+    }
+
+    ModelState.AddModelError(string.Empty, "Failed to create event.");
+    return View(model);
+}
