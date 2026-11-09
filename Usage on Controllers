@@ -1,0 +1,9 @@
+[RBACAuthorize("Organiser")]
+public class OrganiserController : Controller
+{
+    public IActionResult Dashboard()
+    {
+        // Organiser-specific dashboard logic
+        return View();
+    }
+}
