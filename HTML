@@ -1,0 +1,14 @@
+@foreach (var enrolment in Model)
+{
+    <tr>
+        <td>@enrolment.EventName</td>
+        <td>@enrolment.CategoryName</td>
+        <td>
+            @* Visual color-coding based on status *@
+            <span class="badge @(enrolment.PaymentStatus == "Paid" ? "bg-success" : "bg-warning text-dark")">
+                @enrolment.PaymentStatus
+            </span>
+        </td>
+    </tr>
+}
+
