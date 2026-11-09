@@ -1,0 +1,28 @@
+[HttpPost]
+[Authorize(Roles = "Organiser")]
+public async Task<IActionResult> CreateEvent([FromForm] CreateEventDto dto, IFormFile bannerImage)
+{
+    string bannerUrl = string.Empty;
+
+    if (bannerImage != null)
+    {
+        // Upload via Blob Service
+        bannerUrl = await _blobStorageService.UploadFileAsync(bannerImage);
+    }
+
+    var eventEntity = new Event
+    {
+        EventName = dto.EventName,
+        Description = dto.Description,
+        Location = dto.Location,
+        EventDate = dto.EventDate,
+        EventType = dto.EventType,
+        BannerUrl = bannerUrl, // Saved to DB and displayed on event detail page
+        OrganiserId = int.Parse(User.FindFirst("sub")?.Value ?? "0")
+    };
+
+    _context.Events.Add(eventEntity);
+    await _context.SaveChangesAsync();
+
+    return CreatedAtAction(nameof(GetEventById), new { id = eventEntity.EventId }, eventEntity);
+}
